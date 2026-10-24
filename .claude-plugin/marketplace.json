@@ -1,0 +1,12 @@
+{
+  "name": "gg-snm",
+  "owner": { "name": "namdt" },
+  "description": "GG_SnM private Claude Code standards for Unity projects",
+  "plugins": [
+    {
+      "name": "bacon-unity",
+      "source": "./plugins/bacon-unity",
+      "description": "Studio standard for Unity projects on the Bacon base: shared rules, doc templates, playtest / changelog / handoff skills, safety hooks."
+    }
+  ]
+}

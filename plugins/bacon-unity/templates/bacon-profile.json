@@ -1,0 +1,24 @@
+{
+  "standard": "bacon-unity@0.1",
+  "project": "{{PROJECT}}",
+  "type": "{{TYPE}}",
+  "modules": ["{{TYPE_MODULE}}"],
+  "mcp": "coplay",
+  "changelog": "every-change",
+  "self_test": "full",
+  "comment_language": "en",
+  "docs": {
+    "plan": "PLAN_INGAME.md",
+    "mechanics": "GAME_MECHANICS.md",
+    "changelog": "CHANGELOG.md"
+  },
+  "save_file": "",
+  "protected": [
+    "Assets/Plugins/**",
+    "Assets/TextMesh Pro/**"
+  ],
+  "ask": [
+    "Assets/_Project_Base/**"
+  ],
+  "forbidden_names": null
+}

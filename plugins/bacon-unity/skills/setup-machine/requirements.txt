@@ -1,0 +1,12 @@
+# Python libraries used by the rip-original / ref-video tools (reference machine versions in comments).
+# Install: py -m pip install -r requirements.txt
+capstone>=5.0          # 5.0.7  ARM / ARM64 disassembly
+pyelftools>=0.31       # 0.33   ELF sections, symbols, relocations
+UnityPy>=1.20          # 1.25.3 Unity bundles / typetrees
+numpy>=2.0             # 2.5.1
+opencv-python-headless>=4.9  # 5.0  framekit (video frames, masks, tracking)
+Pillow>=10.0           # 12.3
+imageio>=2.34          # 2.37.4
+imageio-ffmpeg>=0.5    # 0.6.0  bundles ffmpeg 7.1 (no ffprobe)
+texture2ddecoder>=1.0  # 1.0.6  ASTC / ETC texture decode
+pymupdf>=1.24          # 1.28   PDF reading

@@ -1,0 +1,27 @@
+{
+  "description": "bacon-unity: session handoff, Unity / vendor / git guards, save backup before Play, changelog reminder",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs\"" } ] }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs\"" } ]
+      },
+      {
+        "matcher": "mcp__.*__(manage_editor|execute_code|execute_menu_item)",
+        "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/save_backup.mjs\"" } ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|mcp__.*__(execute_code|execute_menu_item|manage_(scene|prefabs?|gameobject|components?|asset|material|shader|texture|script|scriptable_object|physics|animation|ui))",
+        "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/track_edits.mjs\"" } ]
+      }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop_changelog.mjs\"" } ] }
+    ]
+  }
+}
