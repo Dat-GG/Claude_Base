@@ -12,6 +12,7 @@ plugins/bacon-unity/
               rip-original (+ references/: engine-native-cpp, engine-il2cpp, engine-js, assets,
                             device-ldplayer, save-files, workspace, no-data)
               ref-video (+ framekit.py: probe · sheet · frames · diff · mask · track · color · compare · fit)
+              size-audit (+ BuildSizeAudit.cs: build report → MB theo asset / scene branch / Resources / settings; who_uses.py)
   agents/     reference-researcher (chỉ đọc: lục code dịch ngược / rip / data gốc, trả về số + nguồn + nhãn)
   hooks/      session_start · guard · save_backup · track_edits · stop_changelog (Node, không cần Python)
 CHANGELOG.md                        lịch sử thay đổi của chuẩn (add-lesson ghi vào)

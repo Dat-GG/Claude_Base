@@ -3,6 +3,21 @@
 Mỗi bản: heading `## <version> — <ngày>` (`<version>+` = chỉ sửa `standards/` / `modules/`, không tăng version), dưới là
 gạch đầu dòng `file — thay đổi (project nguồn)`. Mới nhất lên đầu.
 
+## 0.1.12 — 2026-10-27
+- `skills/size-audit/SKILL.md` §3: asset trong `Resources` của pack mà script editor của pack đọc → chuyển vào `Editor/Resources`,
+  không ra thư mục thường; §4: ước tính APK ≈ 0,6 × packed cho texture / mesh / font (đo BC54: −30,7 packed → −18,9 APK) (BC54).
+
+## 0.1.11 — 2026-10-27
+- `skills/size-audit/BuildSizeAudit.cs`: build report không có packed asset (build tăng dần dùng lại data cũ) → dừng, báo cần
+  Clean Build, không ghi đè `assets.tsv` bằng file rỗng nữa; `SKILL.md` §1 thêm bẫy này (BC54).
+
+## 0.1.10 — 2026-10-27
+- Skill mới `skills/size-audit` (+ `BuildSizeAudit.cs`, `who_uses.py`): rà dung lượng build từ `Library/LastBuild.buildreport`
+  (MB theo asset / loại / thư mục, Combined Mesh của static batching, Resources không scene nào dùng, MB riêng của từng nhánh
+  object trong scene build kèm trạng thái tắt + vertex static, import / player settings), tra ngược GUID, cuối cùng ra danh sách
+  đề xuất A (an toàn) / B (cần quyết định) / C (chất lượng, cần mắt người) / D (hiệu năng, đo trên máy) + so sánh sau khi cắt
+  (`assets_prev.tsv`). 7 bẫy ghi trong skill (BC54: APK 225 MB, tìm ra ~125 MB có thể cắt).
+
 ## 0.1.9 — 2026-10-24
 - Repo chỉ giữ phần dùng chung: `migrations/BC46/` chuyển vào BC46 `.claude/bacon-migration/` (đường dẫn trong `MIGRATION.md` sửa
   theo); `recovered/` (bản gốc script khôi phục) chuyển về workspace: E2D → `<projects>/E2D_Ripper/Tools/_recovered/`,

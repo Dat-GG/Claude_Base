@@ -1,6 +1,6 @@
 {
   "name": "bacon-unity",
-  "version": "0.1.9",
+  "version": "0.1.12",
   "description": "Studio standard for Unity projects on the Bacon base: shared rules, doc templates, playtest / changelog / handoff skills, safety hooks.",
   "author": { "name": "namdt" }
 }
