@@ -207,6 +207,66 @@ See `save-files.md`.
   out (`npm view rea-agents version`; command `inspect-il2cpp-metadata`), then compare with Names and code entries 2 / 5 on UFD (v31) and
   HMR (v39) before adopting it.
 
+## Lua-scripted Unity (tolua / xLua) and encrypted bundles
+Proven on Huyền Thoại DT → HTDT (`<projects>/HTDT_Ripped`, README there): IL2CPP **armeabi-v7a only**, `libtolua.so`, all
+gameplay / UI / config in Lua; C# is only the host (UI, resources, actors, socket).
+
+### 1. Hot-update files on the device
+- Status: ✅ HTDT 2026-10-29 · Cost: 1
+- When: the game downloads code / assets after install (`AssetsUpdate`, resource version on the login screen).
+- How: launch once on LD (it updates), then `adb -s <adb-device> pull /sdcard/Android/data/<pkg>/files D:/…/GameAssets/device`
+  (`Resources/` bundles, `Config/` client prefs, `Log/`). Same-name files override the apk pack.
+- Pitfalls: newer than the apk (HTDT res 0.0.69 vs 0.0.52 in `bundle.apk`, and it changed between two launches the same
+  day): record the version. adb.exe needs Windows local paths (`D:/…`) when `MSYS_NO_PATHCONV=1` is set.
+
+### 2. Encrypted AssetBundles: find and reproduce the decryption
+- Status: ✅ HTDT 2026-10-29 · Cost: 3
+- Signs: install-time pack (`bundle.apk` 1.6 GB, `assets/bundle_*`) whose files do not start with `UnityFS`; AssetRipper on
+  the xapk then exports only `data.unity3d`.
+- How: grep Il2CppDumper `dump.cs` for `Decrypt|LoadFromMemory|LoadFromStream` (HTDT `DecryptAndLoadFromFile`), disassemble
+  the call chain (armv7: capstone ARM mode, see entry 3), read the key literal through the GOT, re-implement in numpy.
+  Known-plaintext check: XOR / decrypt the first bytes against `UnityFS\0\0\0\0\x08` + `5.x.x\0` + the Unity version.
+- HTDT result: XTEA 32 rounds, ECB 8-byte blocks, key = `Encoding.Unicode` bytes of a string literal + custom 16-byte mix,
+  plaintext `[u32 length][UnityFS…]`. Tool: `<projects>/HTDT_Ripped/Tools/htdt_decrypt.py` (2.6 k bundles in minutes).
+- Pitfalls: identical ciphertext from byte 8 across files = ECB with a 4-byte length prefix (block 0 differs only by the
+  length). The key encoding mattered: UTF-8 failed, UTF-16LE worked — try both. Pure-Python XTEA ≈ 50× slower than numpy.
+
+### 3. armv7 (32-bit) IL2CPP code
+- Status: ✅ HTDT 2026-10-29 · Cost: 2
+- How: Il2CppDumper works unchanged (RVA = file offset). `il2cpp_literals.py` and `disasm.py` are arm64-only: use
+  `<projects>/HTDT_Ripped/Tools/disasm_arm32.py` (capstone `CS_MODE_ARM`, call targets named from `script.json`).
+  String literals: `ldr rX,[pc,#imm]` → `ldr rX,[pc,rX]` loads a **GOT entry** (VA → file offset via PT_LOAD) whose value is
+  the metadata slot address; look that up in `script.json` `ScriptString`.
+
+### 4. Lua code in bundles → readable source
+- Status: ✅ HTDT 2026-10-29 · Cost: 1
+- How: TextAssets in the Lua bundles (HTDT `dt324_tmpluabase64_*`, raw LuaJIT bytecode `1B 4C 4A 02`, chunk name = original
+  path) → dump with UnityPy (`<projects>/HTDT_Ripped/Tools/extract_lua.py`) → `<luajit-decompiler> <in dir> -o <out dir>
+  -s -f -e lua < /dev/null` (luajit-decompiler-v2, release Mar_24_2024): 1371 / 1371 files in 29 s, names and strings kept.
+- Pitfalls: the bundle name says "base64" but the content was plain bytecode. Without `< /dev/null` the exe may wait for a key.
+  Config tables are Lua too (HTDT 149 MB, lazy buckets): parse the literals with Python, do not execute them.
+
+### 5. AssetRipper on decrypted bundles + the base apk
+- Status: ✅ load HTDT 2026-10-29 · Cost: 3
+- How: staging folder = extracted base apk + `lib/<abi>/` from the split + decrypted bundles in their original
+  `assets/bundle_*` folder (hard links: `cp -l`, no extra disk). Headless `LoadFolder` on it → "Android game structure",
+  Cpp2IL runs on the armv7 binary, so scripts get their fields. Then `Export/UnityProject`.
+
+### 6. Code graph over the decompiled Lua (optional, `codegraph`)
+- Status: 🧪 HTDT 2026-10-30 · Cost: 1 (index 1371 files in 22 s, 64 MB `.codegraph/`)
+- When: flow questions ("how does X reach Y", "who calls X") over a large decompiled source with real bodies (Lua, JS,
+  ILSpy C#). Not for config / table lookups (grep the key), IL2CPP `dump.cs` (no bodies), prefab / scene wiring.
+- Offer it: once a decompiled source with real bodies (≈ 1000+ files) is ready and several flow questions are coming,
+  **suggest** the index to the user in one line (install + init commands below). Never install or init without a yes.
+  Record the decision in the workspace `README.md` so it is not asked again.
+- How: `npm i -g @colbymchenry/codegraph` (no `codegraph install`: it edits `CLAUDE.md` and permissions), `codegraph
+  telemetry off`, then `codegraph init` in the source folder (e.g. `GameAssets/lua_src/`). Query with `DO_NOT_TRACK=1
+  codegraph explore "<question>"` / `node <symbol>` / `callers <symbol>`, run from that folder, **then grep the key
+  function / field names once** across the folder before answering.
+- Evidence: 3 `[CONFIRMED]` HTDT questions, Sonnet researcher, 1 run each: graph + grep 98k tokens / 171 s, grep only
+  120k / 182 s, both 3/3 with the same edge cases. Graph alone 80k but missed the DOT crit bug: a copy-pasted
+  `IsCritDamage` in `RecoverDOTBuffEvent.lua` has no graph edge to the original, only grep finds it.
+
 ## Mono builds (`assets/bin/Data/Managed/Assembly-CSharp.dll`)
 No Mono **original** met yet; the steps below are proven on our own builds. `detect_engine.py` says `unity-mono`.
 Mono on Android is usually armeabi-v7a only: irrelevant here, the code is managed IL.

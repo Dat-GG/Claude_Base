@@ -1,6 +1,6 @@
 ---
 name: port-mechanic
-description: Implement or change one game mechanic so it matches the original - spec first, research the original through the reference-researcher agent (parallel for independent questions), update GAME_MECHANICS.md with values + sources + tags, then code, verify against the original, log. Use for any gameplay rule, number, behavior or feel change in a project that follows an original or legacy game.
+description: Use when implementing or changing a gameplay rule, number, behavior or feel in a project that follows an original or legacy game.
 ---
 
 # Port a mechanic

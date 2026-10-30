@@ -1,6 +1,6 @@
 ---
 name: playtest
-description: Run a Play-mode test of a Unity project through the Unity MCP safely - right editor instance, user not playing, fresh save backup, wait for data load, step frames, tap UI through real raycasts, capture, restore the save. Use whenever Claude itself enters Play mode to verify a change or reproduce a runtime bug.
+description: Use whenever Claude itself enters Play mode in a Unity project through the Unity MCP - to verify a change, reproduce a runtime bug or capture the running game.
 ---
 
 # Play-mode test (Unity MCP)
@@ -45,6 +45,10 @@ Synthetic mouse input loses to the user's real mouse: if timing by hand matters,
 - `ScreenCapture.CaptureScreenshot(path)` then Step twice; captures occasionally come out cyan, retry.
 - Measure (positions, sizes, pixel colors, counts) instead of eyeballing; compare with the original / Figma when it exists.
 - For visual bugs, render first, then look at logic.
+- Change touches UI, anchors, safe area or the camera → capture the same screen at 3 aspect ratios: 9:16, 9:20 (tall
+  phone), 3:4 (tablet), via the Game view size (reflection on `UnityEditor.GameViewSizes`; not proven yet, record the
+  working call with `/add-lesson`). Check only objective faults (cut off, overlapping, off-anchor, outside the safe
+  area); whether it looks right is the user's call: hand them the 3 captures.
 
 ## 7. Leave clean
 - Stop Play. Restore the save from **this test's** backup (compare md5 with the value recorded in step 2 to be sure you

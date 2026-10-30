@@ -112,6 +112,7 @@ function detect(saved) {
   det.il2cppdumper = fwd(path.dirname(find(/^Il2CppDumper\.exe$/i, toolRoots, 3)[0] || '.')).replace(/^\.$/, '');
   det.cpp2il = find(/^Cpp2IL\.exe$/i, toolRoots, 3)[0] || '';
   det.assetripper = newest(find(/^AssetRipper(\.GUI\.Free)?\.exe$/i, toolRoots, 4));
+  det['luajit-decompiler'] = find(/^luajit-decompiler-v2\.exe$/i, toolRoots, 3)[0] || '';
   det.dotnet = [th && `${th}/dotnet`, 'C:/Program Files/dotnet', `${HOME}/.dotnet`].filter(Boolean).find(d => exists(`${d}/dotnet.exe`)) || '';
   det.ilspycmd = [th && `${th}/ilspycmd/ilspycmd.exe`, `${HOME}/.dotnet/tools/ilspycmd.exe`].filter(Boolean).find(exists) || '';
   det.ldplayer = [...drives().map(d => `${d}/LDPlayer/LDPlayer9`), 'C:/Program Files/LDPlayer/LDPlayer9'].find(d => exists(`${d}/adb.exe`)) || '';
@@ -129,6 +130,7 @@ const INSTALL = {
   il2cppdumper: 'github.com/Perfare/Il2CppDumper/releases → <tools-home>/Il2CppDumper, config.json "RequireAnyKey": false',
   cpp2il: 'github.com/SamboyCoding/Cpp2IL/releases → <tools-home>/Cpp2IL/Cpp2IL.exe',
   assetripper: 'github.com/AssetRipper/AssetRipper/releases (GUI Free, win x64)',
+  'luajit-decompiler': 'only for Lua-scripted Unity (tolua / xLua): luajit-decompiler-v2 release exe → <tools-home>/luajit-decompiler-v2/',
   dotnet: 'dot.net/v1/dotnet-install.ps1 -Channel 10.0 -InstallDir <tools-home>/dotnet -NoPath',
   ilspycmd: 'DOTNET_ROOT=<dotnet> <dotnet>/dotnet.exe tool install ilspycmd --tool-path <tools-home>/ilspycmd',
   ldplayer: 'LDPlayer 9 (ldplayer.net); enable root + ADB in its settings',
@@ -159,8 +161,11 @@ function extras(saved) {
     const mine = fs.readFileSync(`${HOME}/.claude/CLAUDE.md`, 'utf8');
     userMd = userRules && exists(userRules) && fs.readFileSync(userRules, 'utf8') === mine ? 'same as <standard>/user/CLAUDE.md' : 'differs from <standard>/user/CLAUDE.md';
   } catch { /* missing */ }
+  // optional CLI on PATH (npm shim = .cmd on Windows, so go through cmd); used only when a rip has a .codegraph/ index
+  const cg = process.platform === 'win32' ? run('cmd', ['/d', '/c', 'codegraph --version']) : run('codegraph', ['--version']);
   return {
     node: process.version,
+    codegraph: cg ? cg.split(/\r?\n/)[0] : 'not installed (optional: npm i -g @colbymchenry/codegraph, see engine-il2cpp.md › Lua 6)',
     python_libs: out ? out.split(/\r?\n/) : ['python not runnable'],
     plugin_installed: installed,
     user_claude_md: userMd,
@@ -191,6 +196,7 @@ function report(saved, det, json) {
   console.log(`Machine file: ${MACHINE}${exists(MACHINE) ? '' : ' (not created yet: run "write")'}\n`);
   for (const r of rows) console.log(`${r.key.padEnd(16)} ${(r.saved || r.detected || '-').padEnd(70)} ${r.status}`);
   console.log(`\nnode ${ex.node} · plugin installed: ${ex.plugin_installed} · ~/.claude/CLAUDE.md: ${ex.user_claude_md}`);
+  console.log(`codegraph: ${ex.codegraph}`);
   console.log(`link ${ex.link.link} → ${ex.link.real || '(missing)'} ${ex.link.ok ? 'ok' : `(expected ${ex.link.target || '<standard>/plugins/bacon-unity'}: run "link")`}`);
   console.log(`python libs: ${ex.python_libs.join(' · ')}`);
   const todo = rows.filter(r => r.install);

@@ -1,6 +1,6 @@
 ---
 name: log-change
-description: Write a CHANGELOG.md entry in the studio format (date, type, root cause, change, Kiểm tra, Files) for the change just made, and sync the spec / plan references. Use after any code, asset, prefab, scene or tool change in a project on the bacon-unity standard, or when the user says "ghi changelog" / "chốt changelog".
+description: Use after any code, asset, prefab, scene or tool change in a project on the bacon-unity standard, or when the user says "ghi changelog" / "chốt changelog".
 ---
 
 # Log a change

@@ -1,6 +1,6 @@
 ---
 name: size-audit
-description: Find what makes a Unity build (APK / AAB / any player) big and propose what to cut - read the last build report, attribute MB to scene branches (inactive content, static batching), Resources folders, import and player settings, trace who references an asset, then hand the user a ranked A / B / C / D proposal list with estimated MB and risk, and compare after the cuts. Use when the user asks why the build is big, how to reduce APK size, what can be removed, or before a release build.
+description: Use when the user asks why a Unity build (APK / AAB / any player) is big, how to reduce its size or what can be removed, or before a release build.
 ---
 
 # Build size audit

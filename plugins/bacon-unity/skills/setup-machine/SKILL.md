@@ -1,6 +1,7 @@
 ---
 name: setup-machine
-description: Set up or check a PC / laptop for the bacon-unity standard - find the reverse-engineering tools and studio folders, save them in ~/.claude/bacon-machine.json (the <ghidra>, <projects>… tokens used by the docs), link ~/.claude/bacon-standard so project CLAUDE.md imports load, check Python libs, install the personal rules, and list what is missing with download sources. Use on a new machine, after moving folders, when session start says the machine file or the link is missing, or when the user says "cài máy mới", "setup máy", "chuyển sang laptop", "check máy".
+description: Use on a new PC / laptop, after moving tool or studio folders, when session start says ~/.claude/bacon-machine.json or the ~/.claude/bacon-standard link is missing, or when the user says "cài máy mới", "setup máy", "chuyển sang laptop", "check máy".
+effort: low
 ---
 
 # Set up this machine

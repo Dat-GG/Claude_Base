@@ -164,11 +164,12 @@ export function writeState(sessionId, state) {
   fs.writeFileSync(stateFile(sessionId), JSON.stringify(state));
 }
 
-/** Deletes per-session state files older than `days` (one file per session, never cleaned otherwise). */
+/** Deletes per-session state files older than `days` (one file per session, never cleaned otherwise). Keeps skill-usage.tsv. */
 export function pruneState(days = 30) {
   const dir = stateDir();
   const limit = Date.now() - days * 86400000;
   for (const f of fs.readdirSync(dir)) {
+    if (!f.endsWith('.json')) continue;
     try { if (fs.statSync(`${dir}/${f}`).mtimeMs < limit) fs.unlinkSync(`${dir}/${f}`); } catch { /* ignore */ }
   }
 }

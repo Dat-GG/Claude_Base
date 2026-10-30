@@ -1,10 +1,17 @@
 {
-  "description": "bacon-unity: session handoff, Unity / vendor / git guards, save backup before Play, changelog reminder",
+  "description": "bacon-unity: session handoff, skill-usage log, Unity / vendor / git guards, save backup before Play, compile-check + changelog reminder",
   "hooks": {
     "SessionStart": [
       { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs\"" } ] }
     ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/skill_usage.mjs\"" } ] }
+    ],
     "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/skill_usage.mjs\"" } ]
+      },
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
         "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs\"" } ]
@@ -16,7 +23,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit|mcp__.*__(execute_code|execute_menu_item|manage_(scene|prefabs?|gameobject|components?|asset|material|shader|texture|script|scriptable_object|physics|animation|ui))",
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|mcp__.*__(read_console|execute_code|execute_menu_item|manage_(scene|prefabs?|gameobject|components?|asset|material|shader|texture|script|scriptable_object|physics|animation|ui))",
         "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/track_edits.mjs\"" } ]
       }
     ],

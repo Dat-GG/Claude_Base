@@ -1,6 +1,6 @@
 ---
 name: new-project
-description: Set up a Unity project on the bacon-unity standard - new project (create CLAUDE.md, GAME_MECHANICS.md, PLAN_*.md, CHANGELOG.md and .claude/bacon-profile.json from templates, pick type + modules, bring in the Bacon base) or adopt an existing one (propose a migration of its current docs, never overwrite). Use when starting a new game project or when the user says "tạo project mới", "đưa project lên chuẩn", "chuyển project sang chuẩn", or asks to bring a project onto the standard.
+description: Use when starting a new Unity game project, or bringing an existing project onto the bacon-unity standard - the user says "tạo project mới", "đưa project lên chuẩn", "chuyển project sang chuẩn".
 ---
 
 # New / adopt project

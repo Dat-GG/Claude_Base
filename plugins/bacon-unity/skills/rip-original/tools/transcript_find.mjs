@@ -5,6 +5,7 @@
 // Scans ~/.claude/projects/*/**/*.jsonl (main sessions and <session>/subagents/*.jsonl) for Write / Edit / MultiEdit calls whose file path matches, and Bash / PowerShell
 // commands that match (heredoc `cat > x.py <<'EOF'` is how most scratchpad scripts were written). Without --full it
 // lists hits (file, line, time, tool, size); with --full it prints the whole content / command of each hit, oldest first.
+// Output over 12 000 chars goes to a temp file (or --out); stdout then shows the head and the path.
 // Edits are listed after the Write they modify: apply them in order to get the final version.
 // Proven 2026-10-21: recovered the 4 E2D Ghidra query scripts and the HMR IL2CPP literal tools.
 import fs from 'node:fs';
@@ -57,4 +58,13 @@ for (const h of hits) {
   txt += full ? `\n######## ${h.f}:${h.n} ${h.t} ${h.tool}\n${h.body}\n`
               : `${h.t} ${h.tool} ${h.f}:${h.n} (${h.body.length} chars) ${h.body.slice(0, 120).replace(/\s+/g, ' ')}\n`;
 }
-if (outFile) { fs.writeFileSync(outFile, txt); console.log(`${hits.length} hits -> ${outFile}`); } else process.stdout.write(txt || 'no hits\n');
+// Old transcripts hold hundreds of hits for a loose regex, and --full bodies are whole files: past PRINT_CAP chars the
+// text goes to a temp file (or --out) and stdout gets the head + the path.
+const PRINT_CAP = 12000;
+if (!outFile && txt.length <= PRINT_CAP) process.stdout.write(txt || 'no hits\n');
+else {
+  const dest = outFile || path.join(os.tmpdir(), `transcript_find_${Date.now()}.txt`);
+  fs.writeFileSync(dest, txt);
+  if (!outFile) process.stdout.write(txt.slice(0, PRINT_CAP).replace(/[^\n]*$/, '') + '...\n');
+  console.log(`${hits.length} hits, ${txt.length} chars -> ${dest}`);
+}

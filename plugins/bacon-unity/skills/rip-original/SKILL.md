@@ -1,6 +1,6 @@
 ---
 name: rip-original
-description: Playbook for getting information out of the original game we are rebuilding (APK / xapk, rip, decompiled code, data files, saves, the live game on LDPlayer) - identify the engine, then use the cheapest proven method first from the per-engine references (native C++ / Ghidra, Unity IL2CPP / AssetRipper / Il2CppDumper, Cocos JS / RAM carving, asset conversion, device control, save files). Use whenever a value, rule, asset or behavior of the original is needed, before trying any new tool or approach.
+description: Use whenever a value, rule, asset or behavior of the original game is needed from its APK / xapk, rip, decompiled code (Ghidra, IL2CPP, Lua, Cocos JS), data files, saves or the live game on LDPlayer - before trying any new tool or approach.
 ---
 
 # Get it from the original — cheapest proven method first
@@ -31,6 +31,7 @@ and obfuscator hints, biggest native libs, asset file types, and which reference
 | `libcocos2dcpp.so` + encrypted `assets/gameres/**.dat`, `jsb_*` symbols | Cocos Creator (JS) | `references/engine-js.md` |
 | one big game `.so` (`lib<Game>.so`), no libunity / libil2cpp | native C++ (cocos2d-x / custom) | `references/engine-native-cpp.md` |
 | dex only | native Android app | `references/engine-js.md` (custom containers) |
+| `libtolua.so` / `libxlua.so` next to `libil2cpp.so` | Unity + Lua (logic in Lua bundles) | `references/engine-il2cpp.md` › Lua-scripted Unity |
 | source code available (our own legacy / partner project) | — | read it; ask the user where it is |
 
 `libunitycoherencenative.so` alone is the Unity Ads SDK, not a Unity game. AssetRipper "Unknown backend, no valid assets" →
@@ -58,7 +59,10 @@ Also: `references/assets.md` (textures, Spine, fonts, audio, Figma), `references
 ## 3. While working
 - Use the machine paths in `references/workspace.md` (`py -I`, ffmpeg path, `MSYS_NO_PATHCONV=1`).
 - A ❌ entry is not retried unless something changed (say what).
-- Scripts that work go into the workspace `Tools/` with a header, never only in the scratchpad.
+- Scripts that work go into the workspace `Tools/` with a header, never only in the scratchpad. Output that can grow
+  with the input (matches, trees, dumps) prints a capped head (≈ 40–150 lines) plus a count, writes the full result to a
+  file and prints its path (the shared tools do this: `il2cpp_literals find`, `scene_mb_dump`, `transcript_find`,
+  `who_uses`, `framekit diff / mask`).
 - **Stop rule**: ≈ 30 min without progress → stop, report what was tried, ask the user (extracted folder, a recording,
   their eyes / ears, a playtest).
 - Results go into `GAME_MECHANICS.md` with the source (`Class::Method @addr`, file:line, prefab path, video + time) and the

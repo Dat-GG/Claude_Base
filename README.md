@@ -13,8 +13,10 @@ plugins/bacon-unity/
                             device-ldplayer, save-files, workspace, no-data)
               ref-video (+ framekit.py: probe · sheet · frames · diff · mask · track · color · compare · fit)
               size-audit (+ BuildSizeAudit.cs: build report → MB theo asset / scene branch / Resources / settings; who_uses.py)
+              ugui · tmp-fonts (lấy từ plugin Unity chính thức, license Unity Companion: third_party/unity-agent-plugin/)
+  third_party/ unity-agent-plugin (LICENSE + NOTICE: nguồn, commit, đã sửa gì)
   agents/     reference-researcher (chỉ đọc: lục code dịch ngược / rip / data gốc, trả về số + nguồn + nhãn)
-  hooks/      session_start · guard · save_backup · track_edits · stop_changelog (Node, không cần Python)
+  hooks/      session_start · guard · save_backup · track_edits · stop_changelog · skill_usage (Node, không cần Python)
 CHANGELOG.md                        lịch sử thay đổi của chuẩn (add-lesson ghi vào)
 PLAN.md                             trạng thái + việc tiếp theo của chính repo này (khối ▶)
 user/CLAUDE.md                      → chép thành ~/.claude/CLAUDE.md (luật cá nhân, mọi project)
@@ -53,11 +55,12 @@ Claude Code hỏi duyệt import ngoài: chọn đồng ý.
 
 | Hook | Khi nào | Làm gì |
 |---|---|---|
-| `session_start` | mở / resume session | in profile + khối "▶ Trạng thái & bước tiếp theo" của PLAN |
+| `session_start` | mở / resume session, sau compaction | in profile + khối "▶ Trạng thái & bước tiếp theo" của PLAN; sau compaction nhắc khối có thể cũ → đối chiếu `git diff --stat` + CHANGELOG; 14 ngày một lần tóm tắt `skill-usage.tsv` (skill nào chưa chạy) |
 | `guard` | trước Edit / Write / Bash / PowerShell | chặn `Library/Temp/Logs/UserSettings/obj`, folder vendor trong profile; hỏi khi sửa `Packages/` (trừ khi profile `allow_packages`), `.meta` hoặc `_Project_Base`; chặn git / gh làm thay đổi repo |
 | `save_backup` | trước MCP `manage_editor play`, `execute_code` có `isPlaying = true`, menu `Edit/Play` | chép save dev vào `~/.claude/bacon-backups/<project>/` (giữ 30 bản) |
 | `track_edits` | sau Edit / Write và các tool MCP sửa scene / prefab / asset (`execute_code` chỉ khi code có lưu / ghi) | ghi thay đổi; project clone thì báo nếu code chứa tên gốc (rename map; bỏ qua `allow`, `allow_paths`) |
 | `stop_changelog` | Claude dừng | profile `every-change` (mặc định): nhắc 1 lần nếu có thay đổi mà chưa ghi CHANGELOG |
+| `skill_usage` | Claude gọi `Skill`, user gõ `/<lệnh>` | ghi 1 dòng vào `~/.claude/bacon-state/skill-usage.tsv` (ngày, giờ, project, skill, claude / user) — xem skill nào không bao giờ chạy |
 
 `guard` còn: hỏi lại khi lệnh shell xóa / ghi đè `.meta`, `Library/`, `Packages/`; đọc cả git bọc trong `bash -c` /
 `powershell -Command` / `cmd /c`; bỏ qua chữ "git" trong heredoc / comment / `echo`. Luật đường dẫn tính theo thư mục Unity gần nhất,

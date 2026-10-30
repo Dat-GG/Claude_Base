@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Close a work block so the next (cleared) session can resume from the docs - rewrite the plan's "▶ Trạng thái & bước tiếp theo" block, make sure the changelog and spec are consistent, list pending items. Use when the user says "chốt", "handoff", "t clear session", "bàn giao", or at the end of a long work block ("chốt changelog" alone is /log-change).
+description: Use when closing a work block so the next (cleared) session can resume from the docs - the user says "chốt", "handoff", "t clear session", "bàn giao", or a long work block ends. Not for "chốt changelog" alone (that is /log-change).
 ---
 
 # Handoff
@@ -26,6 +26,7 @@ Goal: someone with only the repo docs (no chat history) can continue. The sessio
 - **Tiếp theo:** <ordered next steps>
 - **Chờ user:** <tests to run (where to tap, what to look at), art, decisions>
 - **Chưa test:** <what was never verified>
+- **Đã thử, không được:** <approach → why it failed, so the next session does not retry it>
 - **Lưu ý:** <traps for the next session: editor state, temp files, flags left on>
 ```
 

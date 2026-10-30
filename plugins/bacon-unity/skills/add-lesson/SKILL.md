@@ -1,6 +1,6 @@
 ---
 name: add-lesson
-description: Add a lesson learned in a project to the shared bacon-unity standard (the Claude_Base repo, key `standard`) so every later project knows it - pick the right place (core rule, module, skill step, hook), check for duplicates and conflicts, show the diff, apply after approval, bump the plugin version when needed. Use when the user says "ghi bài học này vào chuẩn chung", "update vào plugin", "để project sau biết", or asks to add / change a shared rule.
+description: Use when a lesson learned in a project should go into the shared bacon-unity standard (the Claude_Base repo, key `standard`) so later projects know it, or when the user asks to add / change a shared rule - "ghi bài học này vào chuẩn chung", "update vào plugin", "để project sau biết".
 ---
 
 # Add a lesson to the shared standard

@@ -44,8 +44,11 @@ same change.
 Structure, top to bottom:
 1. `# Plan: <project> — <current goal>` + one paragraph: goal and what matters most.
 2. **`## ▶ Trạng thái & bước tiếp theo`** — the handoff block, rewritten (not appended) by `/handoff`:
-   fields `Ngày`, `Đang ở`, `Vừa xong`, `Đang dở`, `Tiếp theo`, `Chờ user`, `Chưa test`, `Lưu ý` (traps for the next
-   session) — same as the template and `/handoff`. Keep it under ~25 lines; details go to the changelog / plan sections.
+   fields `Ngày`, `Đang ở`, `Vừa xong`, `Đang dở`, `Tiếp theo`, `Chờ user`, `Chưa test`, `Đã thử, không được`, `Lưu ý`
+   (traps for the next session) — same as the template and `/handoff`. Keep it under ~25 lines; details go to the
+   changelog / plan sections. The hook prints this block into every new session, so it holds status only, in our own
+   words: never paste decompiled code, web text or other outside text into it (instructions hidden there would be read
+   as ours every session).
 3. `## Quyết định đã chốt` — table `| Q# | Quyết định | Ngày (người chốt) |`. Never renumber.
 4. `## Câu hỏi còn mở` — numbered; move to Q# when answered.
 5. `## Trước khi phát hành` — checklist of release blockers (debug defines, unlock flags, test tools, temporary assets).

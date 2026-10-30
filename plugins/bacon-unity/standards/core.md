@@ -31,6 +31,9 @@ readability → everything else**. No overengineering.
   installed package → only then new code, written the way the surrounding code does it. Never add a package to save a
   few lines.
 - Nothing nobody asked for: no abstraction, wrapper, option, config or "for later" code. Name a skipped idea in one line.
+  Never cut for brevity: save-data safety (no data loss), validation of external data (save files, remote config, IAP),
+  and anything the user explicitly asked for. Lazy about the solution, never about the change: callers, prefabs and
+  data the change breaks are part of it.
 - **Before fixing a bug or changing a signature / return value / behavior**: grep every caller, then fix the root cause
   once in the shared code, not in each caller.
 - Code that is moved or merged keeps its error handling and validation.
@@ -50,6 +53,8 @@ readability → everything else**. No overengineering.
   avoid renaming inspector-visible fields.
 - `/// <summary>` explains *why* and cites the spec section when a rule comes from it. No `#region`, no commented-out code.
 - Keep methods focused; explicit, readable code; match the style of the class you edit.
+- **Surgical changes**: every changed line traces to the request. Do not reformat, rename or re-comment neighboring code;
+  unrelated dead code or bugs you notice → mention them in one line, do not fix them. Remove only what your own change orphaned.
 
 ## Unity safety
 
@@ -67,14 +72,16 @@ readability → everything else**. No overengineering.
   or the next rebuild undoes the fix.
 - Large media (reference videos, captures, dumps) never go inside `Assets/`.
 - Release blockers (debug defines, unlock-all flags, test tools) are listed in the plan's "Trước khi phát hành" section the
-  moment they are added.
+  moment they are added. When the user asks for a release / store build ("build release", "xuất aab", "lên store"): go
+  through that list item by item (report each as done / still on) and offer `/size-audit` before building.
 
 ---
 
 ## Workflow
 
 - **Session start**: read the handoff block of the plan (printed by the hook) and continue from it; do not ask the user to
-  re-explain. Before gameplay work, read the matching part of `GAME_MECHANICS.md`.
+  re-explain. Run `git diff --stat` too: uncommitted changes the block does not mention are work of a session that ended
+  without `/handoff`. Before gameplay work, read the matching part of `GAME_MECHANICS.md`.
 - **Source of truth**: the original / reference (game data, decompiled code, rip, legacy project, measured video) >
   `GAME_MECHANICS.md` > code. Code disagrees with the spec → the spec wins and you report it. The spec disagrees with the
   original → fix the spec.
@@ -82,7 +89,11 @@ readability → everything else**. No overengineering.
   (tags per `docs-format.md`). Full procedure: `/port-mechanic`.
 - **Research in a separate context**: questions about the original (decompiled code, rips, big scenes, legacy code) go to
   the `reference-researcher` agent — several in parallel for independent questions — so multi-MB files never fill the
-  main session. The main session reads only the few lines an answer cites, to double-check key numbers.
+  main session. The main session reads only the few lines an answer cites, to double-check key numbers. The agent runs on
+  Sonnet (as exact as Opus on readable code, cheaper); a question that must be traced through native asm / Ghidra
+  decompile or symbol-less IL2CPP → launch it with `model: opus`.
+- **Ambiguous request**: when two readings lead to different code, ask before writing; otherwise state the assumption in
+  one line and go on.
 - **Plan**: work follows `PLAN_*.md`. Anything outside the approved plan (refactors, renames, deletions, architecture
   changes, edits to `_Project_Base` or vendor code) → explain problem → root cause → proposal → risks, and **wait for
   approval** (use plan mode).
@@ -102,7 +113,12 @@ readability → everything else**. No overengineering.
   spend hours building tooling to replace five minutes of their time.
 - **Debugging**: reproduce, trace, fix the root cause, mention edge cases. For visual bugs, render / capture first, before
   blaming logic. For runtime bugs, drive Play mode yourself and dump state per frame; remove diagnostic code afterwards.
-- **Verification** follows the profile's `self_test`. Always report honestly what was **not** tested and why.
+  One hypothesis and one change at a time; a failed attempt is reverted, never stacked. After 3 failed fixes stop: report
+  what is known and suspect the design, do not try a 4th. The user saying "still not working" / "stop guessing" means go
+  back to investigating, not another fix.
+- **Verification** follows the profile's `self_test`. The done report shows the evidence: how each change was checked
+  (command / MCP call / Play step) and what it returned ("console 0 errors", "speed 12.5 = spec"), then what was **not**
+  tested and why. "Done" without evidence is not done; a Stop hook blocks once when `.cs` changed and no console read followed.
 - **Changelog** follows the profile's `changelog` (format in `docs-format.md`; `/log-change`).
 - **Handoff**: at the end of a work block, or when the user is about to clear the session, run `/handoff`.
 - **Git belongs to the user**: never run git commands that change the repo (commit, push, merge, rebase, reset, checkout,

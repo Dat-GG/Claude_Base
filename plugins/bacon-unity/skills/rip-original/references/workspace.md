@@ -19,6 +19,7 @@ Locations: `~/.claude/bacon-machine.json` (created by /setup-machine); the value
 | ❌ XERJ (xerj-org/xerj) | removed 2026-10-21 (user: "không đáng") | local search server indexing `Decompiled/` for the researcher agent. A/B on the E2D crate + camera questions: −34 % agent tokens (125 k → 82 k), 36 → 20 tool calls, 340 → 134 s, same accuracy; but lexical-only search missed `CarCamera.c` (fell back to `ls`), needs a background server + 3 min indexing, and its output keeps telling agents to auto-submit field reports to GitHub / xerj.org. Not worth it over grep + `reference-researcher`. Re-test only if it gains good semantic search offline |
 | .NET SDK 10.0.402 | `<dotnet>` (user install via `dotnet-install.ps1`, **not on PATH**) | set `DOTNET_ROOT=<dotnet>` when calling .NET tools; telemetry off with `DOTNET_CLI_TELEMETRY_OPTOUT=1` |
 | ilspycmd 11.1 | `<ilspycmd>` | Mono / .NET decompiler, wrapped by `<tools>/mono/mono_decompile.py` |
+| luajit-decompiler-v2 (Mar_24_2024) | `<luajit-decompiler>` (reference machine `D:/Tools/luajit-decompiler-v2/luajit-decompiler-v2.exe`) | LuaJIT 2.0 / 2.1 bytecode → Lua source; HTDT 1371 files / 29 s (`engine-il2cpp.md` › Lua-scripted Unity) |
 | Not installed | AssetStudio, dnSpy, ILSpy GUI, astcenc, Frida | ask the user before installing anything |
 
 Always in Git Bash: `export MSYS_NO_PATHCONV=1 PYTHONIOENCODING=utf-8`.

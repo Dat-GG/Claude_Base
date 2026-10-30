@@ -4,6 +4,7 @@
   py -I <tools>/il2cpp/il2cpp_literals.py literals DIR/global-metadata.dat --out DIR     -> DIR/literals.tsv (index \\t repr)
   py -I <tools>/il2cpp/il2cpp_literals.py xref     DIR/libil2cpp.so DIR/literals.tsv --out DIR   -> DIR/refs.tsv (code VA \\t literal index)
   py -I <tools>/il2cpp/il2cpp_literals.py find     DIR "rate_us|not_now" [--window 0x800]       -> each use + literals used nearby
+                                                                       (first 40 printed, all in DIR/find_last.txt)
   py -I <tools>/il2cpp/il2cpp_literals.py near     DIR 0x1b9c000 [--window 0x800]                -> literals used around a code address
 
 How: literal slots in the writable data sections encode (5<<29)|(index<<1)|1; R_AARCH64_RELATIVE relocations whose
@@ -23,6 +24,8 @@ import sys
 import zipfile
 
 import numpy as np
+
+FIND_CAP = 40  # uses printed by `find`; the rest go to DIR/find_last.txt
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -176,10 +179,16 @@ def cmd_find(a):
     refs = load_refs(a.dir)
     pcs = [r[0] for r in refs]
     want = {i for i, s in enumerate(lits) if rx.search(s)}
-    print(f"{len(want)} literals match; uses:")
-    for pc, li in refs:
-        if li in want:
-            print(f"{pc:#x}  {lits[li][:60]}\n    near: {neighbours(refs, pcs, lits, pc, a.window)}")
+    uses = [f"{pc:#x}  {lits[li][:60]}\n    near: {neighbours(refs, pcs, lits, pc, a.window)}" for pc, li in refs if li in want]
+    print(f"{len(want)} literals match; {len(uses)} uses:")
+    for u in uses[:FIND_CAP]:
+        print(u)
+    if len(uses) > FIND_CAP:
+        # a broad regex can match thousands of uses: keep the context small, the full list on disk
+        full = os.path.join(a.dir, "find_last.txt")
+        with open(full, "w", encoding="utf-8") as f:
+            f.write("\n".join(uses) + "\n")
+        print(f"... {len(uses) - FIND_CAP} more uses -> {full} (narrow the regex or grep that file)")
     unused = [lits[i][:60] for i in sorted(want) if i not in {r[1] for r in refs}]
     if unused:
         print("matching literals with no code use found:", unused[:30])

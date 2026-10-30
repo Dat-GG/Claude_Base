@@ -18,6 +18,7 @@ Rules
     LDPlayer screenrecord files are variable frame rate.
   * --roi x,y,w,h is in source pixels. Measure on full-resolution frames; sheets are for finding moments only.
   * Outputs: PNG / CSV / summary.json in --out (default ./framekit_out). Nothing is written next to the video.
+    diff / mask print at most 20 segments; the summary json holds all of them.
 Needs numpy, opencv (cv2), Pillow. No scipy.
 Proven: 2026-10-21 on the known test videos listed in ref-video/SKILL.md (BC36 Scene_game.mp4 menu PLAY button vanishes
 at frame 380 = 12.667 s via `mask`; UFD traffic_start_30s.mp4 VFR via `probe`; BCA27 video4.mp4 pan inertia via `track`).
@@ -79,6 +80,19 @@ def write_json(d, name, obj):
     with open(p, "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2, ensure_ascii=False)
     return p
+
+
+SEG_CAP = 20  # segments printed by diff / mask; all of them stay in the summary json
+
+
+def capped_segments(summary, json_path):
+    """Long noisy videos give hundreds of segments: print the first SEG_CAP, point at the json for the rest."""
+    segs = summary.get("segments", [])
+    if len(segs) <= SEG_CAP:
+        return summary
+    out = dict(summary, segments=segs[:SEG_CAP])
+    out["segments_more"] = f"{len(segs) - SEG_CAP} more of {len(segs)} in {json_path}"
+    return out
 
 
 def write_csv(d, name, header, rows):
@@ -314,7 +328,7 @@ def cmd_diff(a):
     summary = {"video": a.video, "roi": roi, "down": a.down, "noise_floor_p10": round(floor, 4), "thresh": round(thresh, 4),
                "max": round(float(vals.max()), 4), "segments": segs}
     write_json(d, "diff_summary.json", summary)
-    print(json.dumps(summary, indent=2))
+    print(json.dumps(capped_segments(summary, os.path.join(d, "diff_summary.json")), indent=2))
 
 
 def cmd_mask(a):
@@ -340,7 +354,8 @@ def cmd_mask(a):
     for s in segs:
         s["state"] = "present" if s["state"] == "active" else "absent"
     write_json(d, "mask_summary.json", {"video": a.video, "roi": roi, "lo_rgb": a.lo, "hi_rgb": a.hi, "segments": segs})
-    print(json.dumps(segs, indent=2))
+    shown = capped_segments({"segments": segs}, os.path.join(d, "mask_summary.json"))
+    print(json.dumps(shown if "segments_more" in shown else segs, indent=2))
 
 
 def cmd_track(a):

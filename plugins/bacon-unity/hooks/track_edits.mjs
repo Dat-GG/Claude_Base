@@ -1,5 +1,5 @@
-// PostToolUse on file edits and Unity MCP write tools: remember what changed since the last CHANGELOG entry (for the
-// Stop reminder), and flag original identifiers written into code / data of clone projects (profile.forbidden_names).
+// PostToolUse on file edits and Unity MCP write tools: remember what changed since the last CHANGELOG entry and whether
+// C# changed without a console read after it (for the Stop reminder), and flag original identifiers written into code / data of clone projects (profile.forbidden_names).
 import fs from 'node:fs';
 import path from 'node:path';
 import { readInput, findProject, relTo, readState, writeState, docs, expandPath, matchesAny, emit, main } from './common.mjs';
@@ -35,6 +35,9 @@ function forbiddenHits(profile, text) {
 const MCP_READ_ACTION = /^(get|list|find|search|read|info|status|state|ping|screenshot|capture|get_.*|list_.*|find_.*|load|open|validate|inspect|describe)$/i;
 const CODE_WRITES = /SetDirty|SaveAssets|SaveScene|MarkSceneDirty|ApplyModifiedProperties|PrefabUtility\.(Save|Apply|Replace|Unpack)|AssetDatabase\.(Create|Delete|Move|Copy|Rename|Import|Refresh)|File\.(Write|Copy|Move|Delete|AppendAll)|Directory\.(Delete|Move)|PlayerSettings\.|EditorBuildSettings\./;
 
+// execute_code that reads the console / compile state counts as the compile check after a C# edit (Stop gate).
+const CONSOLE_READS = /LogEntries|isCompiling|CompilationPipeline|compilerMessages/;
+
 function mcpChange(tool, ti) {
   const name = tool.split('__').pop();
   if (/execute_code$/.test(tool)) return CODE_WRITES.test(String(ti.code || '')) ? `[MCP] ${name}` : null;
@@ -50,6 +53,11 @@ main(async () => {
   const ti = input.tool_input || {};
 
   if (tool.startsWith('mcp__')) {
+    if (/__read_console$/.test(tool) || (/execute_code$/.test(tool) && CONSOLE_READS.test(String(ti.code || '')))) {
+      const st = readState(input.session_id);
+      if (st.csUnchecked) { st.csUnchecked = false; writeState(input.session_id, st); }
+      if (/__read_console$/.test(tool)) return;
+    }
     const entry = mcpChange(tool, ti);
     if (!entry) return;
     const proj = findProject(input.cwd || process.cwd(), { scanDown: true });
@@ -73,6 +81,7 @@ main(async () => {
   const st = readState(input.session_id);
   if ((docRel || '').toLowerCase() === d.changelog.toLowerCase().replace(/\\/g, '/')) st.edits = [];
   else if (!st.edits.includes(rel || docRel)) st.edits.push(rel || docRel);
+  if (rel && /\.cs$/i.test(rel)) st.csUnchecked = true;
   st.root = proj.root;
   writeState(input.session_id, st);
 

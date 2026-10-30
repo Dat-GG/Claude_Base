@@ -17,6 +17,7 @@ _(cập nhật bằng `/handoff`, viết lại cả khối, không nối thêm)_
 - **Tiếp theo:** Phase 0 bước 1
 - **Chờ user:** —
 - **Chưa test:** —
+- **Đã thử, không được:** —
 - **Lưu ý:** —
 
 ---
@@ -35,6 +36,7 @@ _(cập nhật bằng `/handoff`, viết lại cả khối, không nối thêm)_
 
 - [ ] Tắt / xóa mọi define, cờ và công cụ debug (liệt kê ở đây ngay khi thêm)
 - [ ] Thay hết asset tạm (nếu có)
+- [ ] `/size-audit` trên bản build release (Clean Build)
 
 ## Cách đảm bảo giống gốc
 

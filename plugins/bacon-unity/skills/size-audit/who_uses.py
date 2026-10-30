@@ -6,12 +6,17 @@ Part of the bacon-unity `/size-audit` skill.
 Indexes every Unity YAML file under Assets once (guid -> files that reference it), then for each matching asset walks
 the referencing files upwards (materials, prefabs, controllers, ScriptableObjects...) until it reaches a scene (`*`) or
 a Resources folder (`*`). Text search only: it does not know whether the referencing GameObject is active, so a hit in
-a scene still needs a look in Unity. Written for the APK size audit (2026-10-27).
+a scene still needs a look in Unity. Over 80 lines: the first 80 are printed, the whole tree goes to a temp file (path
+printed). Written for the APK size audit (2026-10-27).
 """
 import os
 import re
 import sys
+import tempfile
+import time
 from collections import defaultdict
+
+PRINT_CAP = 80  # stdout lines; a longer tree goes to a temp file
 
 ROOT = 'Assets'
 YAML_EXT = ('.unity', '.prefab', '.mat', '.asset', '.controller', '.overrideController', '.anim', '.spriteatlas',
@@ -45,7 +50,7 @@ def is_root(path):
     return path.endswith('.unity') or '/Resources/' in path
 
 
-def walk(path, by_path, refs, depth=0, seen=None, max_depth=6):
+def walk(path, by_path, refs, out, depth=0, seen=None, max_depth=6):
     seen = seen if seen is not None else set()
     if path in seen or depth > max_depth:
         return
@@ -53,20 +58,29 @@ def walk(path, by_path, refs, depth=0, seen=None, max_depth=6):
     for ref in sorted(refs.get(by_path.get(path, ''), ())):
         if ref == path:
             continue
-        print('  ' * (depth + 1) + ('* ' if is_root(ref) else '- ') + ref)
+        out.append('  ' * (depth + 1) + ('* ' if is_root(ref) else '- ') + ref)
         if not ref.endswith('.unity'):
-            walk(ref, by_path, refs, depth + 1, seen, max_depth)
+            walk(ref, by_path, refs, out, depth + 1, seen, max_depth)
 
 
 def main():
     by_path, refs = index()
+    lines = []
     for query in sys.argv[1:]:
         matches = [p for p in by_path if p == query or query.lower() in p.lower()]
         if not matches:
-            print('no asset matches', query)
+            lines.append('no asset matches ' + query)
         for m in matches[:10]:
-            print(m)
-            walk(m, by_path, refs)
+            lines.append(m)
+            walk(m, by_path, refs, lines)
+    # a shared atlas / material can be referenced by hundreds of prefabs: keep the head here, the whole tree on disk
+    print('\n'.join(lines[:PRINT_CAP]))
+    if len(lines) > PRINT_CAP:
+        full = os.path.join(tempfile.gettempdir(), 'who_uses_%d.txt' % int(time.time()))
+        with open(full, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n')
+        roots = sum(1 for l in lines if l.lstrip().startswith('* '))
+        print('... %d lines (%d scene / Resources roots) -> %s' % (len(lines), roots, full))
 
 
 if __name__ == '__main__':

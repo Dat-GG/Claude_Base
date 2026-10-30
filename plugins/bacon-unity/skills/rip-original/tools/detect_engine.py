@@ -123,7 +123,8 @@ def detect(src):
     r['details']['containers'] = sorted({e[0] for e in src.entries
                                          if not re.match(r'(split_)?config\.([a-z]{2}|[a-z]*dpi)\.apk$', e[0])})
     if abis and 'arm64-v8a' not in abis and not has_mono_dlls(src):
-        r['warnings'].append('no arm64-v8a libs: tools here assume arm64 (capstone mode, il2cpp_literals.py)')
+        r['warnings'].append('no arm64-v8a libs: tools here assume arm64 (capstone mode, il2cpp_literals.py); '
+                              'armv7: engine-il2cpp.md > Lua-scripted Unity > 3')
 
     def has(*names):
         return [n for n in names if n in libnames]
@@ -170,6 +171,10 @@ def detect(src):
                         r['warnings'].append('Assembly-CSharp.dll does not start with MZ: encrypted, needs the loader key')
         else:
             add('unity-il2cpp', 'libunity.so (backend libs not found in this file: check the arm64 split apk)')
+        lua = has('libtolua.so', 'libxlua.so', 'libslua.so', 'libulua.so')
+        if lua:
+            r['warnings'].append('Lua-scripted Unity (%s): gameplay is Lua in bundles / TextAssets -> '
+                                 'engine-il2cpp.md > Lua-scripted Unity' % ', '.join(lua))
         ver = None
         for pat in (r'assets/bin/data/globalgamemanagers$', r'assets/bin/data/data\.unity3d$',
                     r'assets/bin/data/level0$', r'assets/bin/data/unity default resources$'):
@@ -298,6 +303,10 @@ def detect(src):
 
 
 def main():
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')  # non-ASCII file names under `py -I` (HTDT 2026-10-29)
+    except AttributeError:
+        pass
     if any(a in ('-h', '--help') for a in sys.argv[1:]):
         print(__doc__)
         return

@@ -14,6 +14,29 @@ function machineLines() {
   return out;
 }
 
+const NUDGE_DAYS = 14;
+
+/** Every NUDGE_DAYS days (once the log is that old): one line on skill-usage.tsv, so nobody has to remember to read it. */
+function skillUsageNudge() {
+  const dir = `${os.homedir()}/.claude/bacon-state`.replace(/\\/g, '/');
+  const file = `${dir}/skill-usage.tsv`, mark = `${dir}/skill-usage-nudge.txt`;
+  if (!fs.existsSync(file)) return null;
+  const rows = fs.readFileSync(file, 'utf8').split(/\r?\n/).slice(1).filter(Boolean).map(l => l.split('\t'));
+  const day = 86400000, now = Date.now();
+  if (!rows.length || now - Date.parse(rows[0][0]) < NUDGE_DAYS * day) return null;
+  try { if (now - Date.parse(fs.readFileSync(mark, 'utf8').trim()) < NUDGE_DAYS * day) return null; } catch { /* first nudge */ }
+  fs.writeFileSync(mark, new Date(now).toISOString().slice(0, 10));
+  const counts = {};
+  for (const r of rows) { const s = (r[3] || '').replace(/^bacon-unity:/, ''); counts[s] = (counts[s] || 0) + 1; }
+  let ours = [];
+  try { ours = fs.readdirSync(new URL('../skills/', import.meta.url)).filter(n => !n.startsWith('.')); } catch { /* ignore */ }
+  const never = ours.filter(s => !counts[s]);
+  const top = Object.entries(counts).filter(([s]) => ours.includes(s)).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([s, n]) => `${s} ${n}`).join(', ');
+  return `[bacon-unity] Skill usage since ${rows[0][0]} (${rows.length} runs): ${top || '-'}. Never run: ${never.join(', ') || 'none'}. ` +
+    `Tell the user in one line at a natural point (a never-run skill may need a better description or is not needed); source ${file}.`;
+}
+
 const MAX_LINES = 40;
 
 function handoffBlock(planPath) {
@@ -41,6 +64,7 @@ function handoffBlock(planPath) {
 main(async () => {
   const input = await readInput();
   try { pruneState(); } catch { /* ignore */ }
+  try { const n = skillUsageNudge(); if (n) console.log(n); } catch { /* ignore */ }
   const proj = findProject(input.cwd || process.cwd(), { scanDown: true });
   if (!proj.isUnity) return;
   if (proj.profileError) {
@@ -63,5 +87,8 @@ main(async () => {
   ];
   const block = handoffBlock(`${proj.docRoot}/${d.plan}`);
   lines.push(block ? `\nHandoff from ${d.plan}:\n${block}` : `\nNo "## ▶ Trạng thái & bước tiếp theo" block in ${d.plan} yet: create it at the next /handoff.`);
+  // After a mid-block compaction the block is from the last /handoff, older than the work just summarized.
+  if (input.source === 'compact')
+    lines.push(`\nContext was compacted: this block may predate the current work. Reconcile with \`git diff --stat\` and the newest ${d.changelog} entries before continuing.`);
   console.log(lines.join('\n'));
 });

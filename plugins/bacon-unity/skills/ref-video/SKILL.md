@@ -1,6 +1,6 @@
 ---
 name: ref-video
-description: Measure reference videos and screenshots of the original game frame by frame - probe (real timestamps, VFR), contact sheets to find moments, full-resolution frames, change / event detection, color masks, motion and position tracking, colors, side-by-side with Unity captures, curve fits - with the bundled framekit.py script. Use whenever timing, speed, size, position, color or animation of the original must be read from a recording or screenshot.
+description: Use whenever timing, speed, size, position, color or animation of the original game must be read from a reference video, recording or screenshot.
 ---
 
 # Reference video / screenshot measurement
